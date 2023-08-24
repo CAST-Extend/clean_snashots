@@ -241,5 +241,18 @@ if __name__ == "__main__":
         log.info(f'{added} new violations added')
 
         # send_email(args.application, args.sender, args.reciever, args.smtp_host, args.smtp_port, args.smtp_user, args.smtp_pass)
-            
+            # set name of the variable
+
+        name = 'added_violations'
+
+        # set value of the variable
+
+        value = added
+
+        # set variable
+
+        print(f'##vso[task.setvariable variable={name};]{value}')
+
+        print(added) 
+           
         exit(added)
