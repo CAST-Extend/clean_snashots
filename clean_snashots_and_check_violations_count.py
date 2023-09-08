@@ -200,43 +200,6 @@ if __name__ == "__main__":
                 if not detail_df.empty:
                     format_table(writer,detail_df,name,[120,50,75,10])
 
-        combined = DataFrame()
-        prev_snapshot = aip.get_prev_snapshot(domain_id)
-        if bool(prev_snapshot):
-            new_grades = aip.get_grades_by_technology(domain_id,snapshot)
-            unwanted=new_grades.columns[new_grades.columns.str.startswith('ISO')]
-            new_grades=new_grades.drop(unwanted,axis=1).transpose()[['All']].rename(columns={'All':'Latest'})
-            
-            old_grades = aip.get_grades_by_technology(domain_id,prev_snapshot).drop(unwanted,axis=1).transpose()[['All']].rename(columns={'All':'Previous'})
-
-            combined = merge(old_grades,new_grades,left_index=True,right_index=True).reset_index()
-            combined['Change'] = combined[['Previous', 'Latest']].pct_change(axis=1)['Latest']
-            format_table(writer,combined,'Grades',[50,10,10,10])
-        else:
-            new_grades = aip.get_grades_by_technology(domain_id,snapshot)
-            unwanted=new_grades.columns[new_grades.columns.str.startswith('ISO')]
-            new_grades=new_grades.drop(unwanted,axis=1).transpose()[['All']].rename(columns={'All':'Latest'})
-
-            data = {
-            "Previous": ['N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A']
-            }
-
-            old_grades = DataFrame(data, index =  ['TQI', 'Robustness', 'Efficiency', 'Security', 'Transferability', 'Changeability', 'Documentation'])
-
-            #load data into a DataFrame object:
-            combined = merge(old_grades,new_grades,left_index=True,right_index=True).reset_index()
-
-            combined['Change'] = ['N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A']
-            format_table(writer,combined,'Grades',[50,10,10,10])
-
-        writer.close()
-
-        #if application does not contains previous snapshot then prev_snapshot['date'] = 0
-        if len(prev_snapshot) == 0:
-            prev_snapshot['date'] = 0
-        prev_snapshot_date = prev_snapshot['date']
-
-        # generate_application_template(combined, args.application, snapshot, prev_snapshot_date, added, total)
 
         log.info(f'{added} new violations added')
 
