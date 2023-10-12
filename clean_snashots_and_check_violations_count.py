@@ -9,6 +9,10 @@ from argparse import ArgumentParser
 from os.path import abspath
 from datetime import datetime
 
+import pandas as pd
+from sqlalchemy import create_engine
+import psycopg2
+
 def get_application_guid(console_url, console_api_key, app_name):
     url=f"{console_url}/api/applications"
     headers = {
@@ -137,6 +141,11 @@ if __name__ == "__main__":
     parser.add_argument('-console_url', '--console_url', required=True, help='AIP Console URL')
     parser.add_argument('-console_api_key', '--console_api_key', required=True, help='AIP Console API KEY')
     parser.add_argument('-o', '--output', required=False, help='Output Folder')
+    parser.add_argument('-css_host','--css_host',required=True,help='CSS Host')
+    parser.add_argument('-css_database','--css_database',required=True,help='CSS Database')
+    parser.add_argument('-css_port','--css_port',required=True,help='CSS Port')
+    parser.add_argument('-css_user','--css_user',required=True,help='CSS User')
+    parser.add_argument('-css_password','--css_password',required=True,help='CSS Pasword')
 
     args=parser.parse_args()
     log = Logger()
@@ -160,7 +169,6 @@ if __name__ == "__main__":
                 time.sleep(10)
 
     # aip = AipRestCall(args.dashborad_rest_url, args.dashborad_username, args.dashborad_password, log_level=INFO)
-    # domain_id = aip.get_domain(f'{args.app_name}_central')
     # if domain_id==None:
     #     log.error(f'Domain not found: {args.app_name}')
     # else:
@@ -206,16 +214,48 @@ if __name__ == "__main__":
     #     # send_email(args.application, args.sender, args.reciever, args.smtp_host, args.smtp_port, args.smtp_user, args.smtp_pass)
     #         # set name of the variable
 
-    #     name = 'added_violations'
+    db_uri = f"postgresql://{args.css_user}:{args.css_password}@{args.css_host}:{args.css_port}/{args.css_database}"
 
-    #     # set value of the variable
+    # Create an SQLAlchemy engine
+    engine  = create_engine(db_uri)
 
-    #     value = added
+    # Create a connection and a cursor
+    connection = engine.connect()
+    cursor = connection.connection.cursor()
 
-    #     # set variable
+    if '.' in args.app_name:
+        args.app_name = args.app_name.replace('.','_')
 
-    #     print(f'##vso[task.setvariable variable={name};]{value}')
+    if '-' in args.app_name:
+        args.app_name = args.app_name.replace('-','_')
 
-    #     print(added) 
-           
-    #     exit(added)
+    query = f"""set search_path={args.app_name}_central;"""
+    cursor.execute(query)
+
+    added_violation_query = """SELECT count(distinct(concat(cvs.diag_id,cvs.object_id)))
+    FROM csv_violation_statuses cvs , csv_quality_tree cqt
+    WHERE cqt.metric_id = diag_id and m_crit =1
+    AND cvs.snaphot_id IN (SELECT max (snapshot_id ) 
+    FROM dss_snapshots) AND cvs.violation_status='Added'"""
+
+    # Execute the query
+    cursor.execute(added_violation_query)
+
+    # Fetch all the rows (column values) from the result
+    added = cursor.fetchall()
+
+    added = added[0][0]
+
+    name = 'added_violations'
+
+    # set value of the variable
+
+    value = added
+
+    # set variable
+
+    print(f'##vso[task.setvariable variable={name};]{value}')
+
+    print(added) 
+        
+    exit(added)
