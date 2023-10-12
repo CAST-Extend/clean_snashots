@@ -130,9 +130,9 @@ if __name__ == "__main__":
     }
 
     parser = ArgumentParser()
-    parser.add_argument('-dashborad_rest_url','--dashborad_rest_url',required=True,help='CAST REST API URL')
-    parser.add_argument('-dashborad_username','--dashborad_username',required=True,help='CAST REST API User Name')
-    parser.add_argument('-dashborad_password','--dashborad_password',required=True,help='CAST REST API Password')
+    # parser.add_argument('-dashborad_rest_url','--dashborad_rest_url',required=True,help='CAST REST API URL')
+    # parser.add_argument('-dashborad_username','--dashborad_username',required=True,help='CAST REST API User Name')
+    # parser.add_argument('-dashborad_password','--dashborad_password',required=True,help='CAST REST API Password')
     parser.add_argument('-app_name','--app_name',required=True,help='Application Name')
     parser.add_argument('-console_url', '--console_url', required=True, help='AIP Console URL')
     parser.add_argument('-console_api_key', '--console_api_key', required=True, help='AIP Console API KEY')
@@ -159,63 +159,63 @@ if __name__ == "__main__":
                     print(f"deleting snapshot -> {snapshot_name}............")
                 time.sleep(10)
 
-    aip = AipRestCall(args.dashborad_rest_url, args.dashborad_username, args.dashborad_password, log_level=INFO)
-    domain_id = aip.get_domain(f'{args.app_name}_central')
-    if domain_id==None:
-        log.error(f'Domain not found: {args.app_name}')
-    else:
-        total = 0
-        added = 0
-        snapshot = aip.get_latest_snapshot(domain_id)
-        if not bool(snapshot):
-            log.error(f'No snapshots found: {args.app_name}')
-            exit (-1)
-        snapshot_id = snapshot['id']
+    # aip = AipRestCall(args.dashborad_rest_url, args.dashborad_username, args.dashborad_password, log_level=INFO)
+    # domain_id = aip.get_domain(f'{args.app_name}_central')
+    # if domain_id==None:
+    #     log.error(f'Domain not found: {args.app_name}')
+    # else:
+    #     total = 0
+    #     added = 0
+    #     snapshot = aip.get_latest_snapshot(domain_id)
+    #     if not bool(snapshot):
+    #         log.error(f'No snapshots found: {args.app_name}')
+    #         exit (-1)
+    #     snapshot_id = snapshot['id']
 
-        base='./'
-        if not args.output is None:
-            base = args.output
+    #     base='./'
+    #     if not args.output is None:
+    #         base = args.output
 
-        s = datetime.now().strftime("%Y%m%d-%H%M%S")
-        file_name = abspath(f'{base}/violations-{args.app_name}-{s}.xlsx')
-        writer = ExcelWriter(file_name, engine='xlsxwriter')
+    #     s = datetime.now().strftime("%Y%m%d-%H%M%S")
+    #     file_name = abspath(f'{base}/violations-{args.app_name}-{s}.xlsx')
+    #     writer = ExcelWriter(file_name, engine='xlsxwriter')
 
-        first=True
-        for code in measures:
-            name = measures[code]
-            df=aip.get_rules(domain_id,snapshot_id,code,critical=True,non_critical=False,start_row=1,max_rows=999999)
-            if not df.empty:
-                if first:
-                    total=len(df)
+    #     first=True
+    #     for code in measures:
+    #         name = measures[code]
+    #         df=aip.get_rules(domain_id,snapshot_id,code,critical=True,non_critical=False,start_row=1,max_rows=999999)
+    #         if not df.empty:
+    #             if first:
+    #                 total=len(df)
                     
-                df=df.loc[df['diagnosis.status'] == 'added']
+    #             df=df.loc[df['diagnosis.status'] == 'added']
 
-                if first:
-                    added=len(df)
+    #             if first:
+    #                 added=len(df)
 
-                detail_df = df[['component.name','component.shortName','rulePattern.name','rulePattern.critical']]
-                detail_df = detail_df.rename(columns={'component.name':'Component Name','component.shortName':'Component Short Name','rulePattern.name':'Rule','rulePattern.critical':'Critical'})
-                first=False
+    #             detail_df = df[['component.name','component.shortName','rulePattern.name','rulePattern.critical']]
+    #             detail_df = detail_df.rename(columns={'component.name':'Component Name','component.shortName':'Component Short Name','rulePattern.name':'Rule','rulePattern.critical':'Critical'})
+    #             first=False
 
-                if not detail_df.empty:
-                    format_table(writer,detail_df,name,[120,50,75,10])
+    #             if not detail_df.empty:
+    #                 format_table(writer,detail_df,name,[120,50,75,10])
 
 
-        log.info(f'{added} new violations added')
+    #     log.info(f'{added} new violations added')
 
-        # send_email(args.application, args.sender, args.reciever, args.smtp_host, args.smtp_port, args.smtp_user, args.smtp_pass)
-            # set name of the variable
+    #     # send_email(args.application, args.sender, args.reciever, args.smtp_host, args.smtp_port, args.smtp_user, args.smtp_pass)
+    #         # set name of the variable
 
-        name = 'added_violations'
+    #     name = 'added_violations'
 
-        # set value of the variable
+    #     # set value of the variable
 
-        value = added
+    #     value = added
 
-        # set variable
+    #     # set variable
 
-        print(f'##vso[task.setvariable variable={name};]{value}')
+    #     print(f'##vso[task.setvariable variable={name};]{value}')
 
-        print(added) 
+    #     print(added) 
            
-        exit(added)
+    #     exit(added)

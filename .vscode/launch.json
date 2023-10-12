@@ -11,7 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": false,
-            "args": ["-dashborad_rest_url","http://localhost:8090/rest","-dashborad_username","admin","-dashborad_password","admin","-app_name","test_recipeportal", "-console_url", "http://localhost:8081", "-console_api_key", "2wuWWoWz.JBsiEJ40V8ebKjyQyeeFQ2tZRhN6Ai3V"],
+            "args": ["-app_name","test_recipeportal", "-console_url", "http://localhost:8081", "-console_api_key", "2wuWWoWz.JBsiEJ40V8ebKjyQyeeFQ2tZRhN6Ai3V"],
         }
     ]
 }
