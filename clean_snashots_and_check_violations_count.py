@@ -80,8 +80,9 @@ def get_central_schema(console_url, console_api_key, guid):
         if rsp.status_code == 200:
             data = json.loads(rsp.text) 
 
-            if data["schemas"][0]["type"] == 'central':
-                return data["schemas"][0]["name"]
+            for i in range(len(data["schemas"])):
+                if data["schemas"][i]["type"] == 'central':
+                    return data["schemas"][i]["name"]
 
         else:
             print("Some error has occured! ")
