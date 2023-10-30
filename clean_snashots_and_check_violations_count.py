@@ -67,6 +67,30 @@ def check_snapshot(console_url, console_api_key, guid):
         print('some exception has occured! \n Please resolve them or contact developers')
         print(e)
 
+def get_central_schema(console_url, console_api_key, guid):
+    url=f"{console_url}/api/aic/applications/{guid}"
+    headers = {
+        "x-api-key": console_api_key
+    }
+
+    try:
+        #fetching the app schemas.
+        rsp = requests.get(url, headers=headers)
+        # print(rsp.status_code)
+        if rsp.status_code == 200:
+            data = json.loads(rsp.text) 
+
+            if data["schemas"][0]["type"] == 'central':
+                return data["schemas"][0]["name"]
+
+        else:
+            print("Some error has occured! ")
+            print(rsp.text)
+
+    except Exception as e:
+        print('some exception has occured! \n Please resolve them or contact developers')
+        print(e)
+
 def delete_snapshot(console_url, console_api_key, app_name, guid, snapshot_guid, snapshot_name):
     url = f"{console_url}/api/jobs"
     headers = {
@@ -152,6 +176,7 @@ if __name__ == "__main__":
 
     guid = get_application_guid(args.console_url, args.console_api_key, args.app_name)
     snapshots = check_snapshot(args.console_url, args.console_api_key, guid)
+    central_schema = get_central_schema(args.console_url, args.console_api_key, guid)
 
     if len(snapshots) > 2:
         for i in range(1,len(snapshots)-1):
@@ -223,13 +248,13 @@ if __name__ == "__main__":
     connection = engine.connect()
     cursor = connection.connection.cursor()
 
-    if '.' in args.app_name:
-        args.app_name = args.app_name.replace('.','_')
+    # if '.' in args.app_name:
+    #     args.app_name = args.app_name.replace('.','_')
 
-    if '-' in args.app_name:
-        args.app_name = args.app_name.replace('-','_')
+    # if '-' in args.app_name:
+    #     args.app_name = args.app_name.replace('-','_')
 
-    query = f"""set search_path={args.app_name}_central;"""
+    query = f"""set search_path={central_schema};"""
     cursor.execute(query)
 
     added_violation_query = """SELECT count(distinct(concat(cvs.diag_id,cvs.object_id)))
